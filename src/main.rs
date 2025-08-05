@@ -9,10 +9,11 @@ struct Point {
 #[macroquad::main("Chaikin's Algorithm")]
 async fn main() {
     let mut control_points: Vec<Point> = Vec::new();
+    let mut steps: Vec<Vec<Point>> = Vec::new();
     let mut animating = false;
-
     let mut dragging_idx: Option<usize> = None;
-
+    // optional warning message (text, remaining time)
+    let mut warning: Option<(String, f32)> = None;
     loop {
         clear_background(WHITE);
 
@@ -40,10 +41,33 @@ async fn main() {
             }
         }
 
+        // start animation on Enter
+        if is_key_pressed(KeyCode::Enter) {
+            // stop any dragging before animation
+            dragging_idx = None;
+            if control_points.len() >= 2 {
+                steps.clear();
+                // first step: original control points connected
+                // subsequent Chaikin subdivision steps
+                for _ in 0..7 {
+                 // ToDo add Chaikin Algo
+                }
+                animating = control_points.len() > 2;
+                current_step = 0;
+                timer = 0.0;
+            } else {
+                // not enough points -> warn user
+                warning = Some((
+                    "Add at least two points before pressing Enter".to_string(),
+                    2.0,
+                ));
+            }
+        }
+
         for p in &control_points {
             draw_circle(p.x, p.y, 3.5, BLACK);
         }
-        
+
         // exit on Escape
         if is_key_pressed(KeyCode::Escape) {
             break;
