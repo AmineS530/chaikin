@@ -17,6 +17,14 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
+        // display warning message if active
+        if let Some((msg, time_left)) = &mut warning {
+            draw_text(msg, 20.0, 30.0, 30.0, RED);
+            *time_left -= get_frame_time();
+            if *time_left <= 0.0 {
+                warning = None;
+            }
+        }
         // handle mouse press: start dragging or add point (add only when not animating)
         if is_mouse_button_pressed(MouseButton::Left) {
             let (mx, my) = mouse_position();
@@ -50,7 +58,7 @@ async fn main() {
                 // first step: original control points connected
                 // subsequent Chaikin subdivision steps
                 for _ in 0..7 {
-                 // ToDo add Chaikin Algo
+                    // ToDo add Chaikin Algo
                 }
                 animating = control_points.len() > 2;
                 current_step = 0;
