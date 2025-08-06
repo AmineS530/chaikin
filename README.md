@@ -21,7 +21,7 @@ This Rust application uses **Chaikin's corner-cutting algorithm** to generate sm
 2. Clone or download this repo.
 3. Navigate to the project folder:
    ```bash
-   cd chaikin_rs
+   cd chaikin
    ```
 4. Build and run:
   ```bash
