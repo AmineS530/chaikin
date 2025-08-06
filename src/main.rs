@@ -38,17 +38,14 @@ async fn main() {
     let mut control_points: Vec<Point> = Vec::new();
     let mut steps: Vec<Vec<Point>> = Vec::new();
     let mut animating = false;
-    let mut steps: Vec<Vec<Point>> = Vec::new();
     let mut current_step = 0;
     let mut timer: f32 = 0f32;
     const STEP_TIME: f32 = 0.5;
-
     let mut dragging_idx: Option<usize> = None;
     // optional warning message (text, remaining time)
     let mut warning: Option<(String, f32)> = None;
     loop {
         clear_background(WHITE);
-
         // display warning message if active
         if let Some((msg, time_left)) = &mut warning {
             draw_text(msg, 20.0, 30.0, 30.0, RED);
@@ -57,6 +54,7 @@ async fn main() {
                 warning = None;
             }
         }
+
         // handle mouse press: start dragging or add point (add only when not animating)
         if is_mouse_button_pressed(MouseButton::Left) {
             let (mx, my) = mouse_position();
@@ -78,7 +76,26 @@ async fn main() {
             if let Some(i) = dragging_idx {
                 let (mx, my) = mouse_position();
                 control_points[i] = Point { x: mx, y: my };
+                // if animating, recalc all steps in real time
+                if animating && control_points.len() >= 2 {
+                    steps.clear();
+                    let mut pts = control_points.clone();
+                    // include initial connected points
+                    steps.push(pts.clone());
+                    for _ in 0..7 {
+                        pts = chaikin(&pts);
+                        steps.push(pts.clone());
+                    }
+                    // reset animation progress
+                    current_step = 0;
+                    timer = 0.0;
+                }
             }
+        }
+
+        // end dragging on release
+        if is_mouse_button_released(MouseButton::Left) {
+            dragging_idx = None;
         }
 
         // start animation on Enter
@@ -100,12 +117,11 @@ async fn main() {
                 timer = 0.0;
             } else {
                 // not enough points -> warn user
-                warning = Some(("Add at least two points before pressing Enter".to_string(), 2.0));
+                warning = Some((
+                    "Add at least two points before pressing Enter".to_string(),
+                    2.0,
+                ));
             }
-        }
-
-        for p in &control_points {
-            draw_circle(p.x, p.y, 3.5, BLACK);
         }
 
         // clear all points on 'C'
@@ -114,17 +130,28 @@ async fn main() {
             steps.clear();
             animating = false;
             current_step = 0;
+            // stop dragging when cleared
+            dragging_idx = None;
         }
+
         // exit on Escape
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
+        
+        // draw control points
+        for p in &control_points {
+            draw_circle(p.x, p.y, 3.5, BLACK);
+        }
+
         // if exactly two points, draw straight line (only after Enter pressed)
         if !animating && control_points.len() == 2 && !steps.is_empty() {
             let a = &control_points[0];
             let b = &control_points[1];
             draw_line(a.x, a.y, b.x, b.y, 2.0, BLACK);
         }
+
+        // animate Chaikin steps
         if animating {
             timer += get_frame_time();
             if timer > STEP_TIME {
@@ -144,6 +171,7 @@ async fn main() {
                 }
             }
         }
-        next_frame().await
+
+        next_frame().await;
     }
 }
