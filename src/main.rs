@@ -38,9 +38,11 @@ async fn main() {
     let mut control_points: Vec<Point> = Vec::new();
     let mut steps: Vec<Vec<Point>> = Vec::new();
     let mut animating = false;
+    let mut steps: Vec<Vec<Point>> = Vec::new();
     let mut current_step = 0;
-    let mut timer = 0f32;
+    let mut timer: f32 = 0f32;
     const STEP_TIME: f32 = 0.5;
+
     let mut dragging_idx: Option<usize> = None;
     // optional warning message (text, remaining time)
     let mut warning: Option<(String, f32)> = None;
@@ -106,11 +108,42 @@ async fn main() {
             draw_circle(p.x, p.y, 3.5, BLACK);
         }
 
+        // clear all points on 'C'
+        if is_key_pressed(KeyCode::C) {
+            control_points.clear();
+            steps.clear();
+            animating = false;
+            current_step = 0;
+        }
         // exit on Escape
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
-
+        // if exactly two points, draw straight line (only after Enter pressed)
+        if !animating && control_points.len() == 2 && !steps.is_empty() {
+            let a = &control_points[0];
+            let b = &control_points[1];
+            draw_line(a.x, a.y, b.x, b.y, 2.0, BLACK);
+        }
+        if animating {
+            timer += get_frame_time();
+            if timer > STEP_TIME {
+                timer = 0.0;
+                current_step = (current_step + 1) % steps.len();
+            }
+            if let Some(cur) = steps.get(current_step) {
+                // draw lines
+                for i in 0..cur.len() - 1 {
+                    let p1 = &cur[i];
+                    let p2 = &cur[i + 1];
+                    draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, BLACK);
+                }
+                // draw points
+                for p in cur {
+                    draw_circle(p.x, p.y, 2.5, BLUE);
+                }
+            }
+        }
         next_frame().await
     }
 }
