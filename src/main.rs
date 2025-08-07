@@ -170,6 +170,10 @@ async fn main() {
                     draw_circle(p.x, p.y, 2.5, BLUE);
                 }
             }
+            // Display the current step number
+            if current_step > 0 {
+                draw_text(&format!("Step: {}", current_step), 20.0, 100.0, 30.0, BLACK);
+            }
         }
 
         next_frame().await;
